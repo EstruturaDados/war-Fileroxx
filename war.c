@@ -13,10 +13,36 @@ typedef struct
     int tropas;    // quantidade de tropas no território
 } Territorio;
 
-void cadastrarTerritorios(Territorio *mapa, int quantidade);
-void exibirTerritorios(Territorio *mapa, int quantidade);
-void atacar(Territorio *atacante, Territorio *defensor);
-void liberarMemoria(Territorio *mapa);
+// Protótipos
+void cadastrarTerritorios(
+    Territorio *mapa,
+    int quantidade);
+
+void exibirTerritorios(
+    Territorio *mapa,
+    int quantidade);
+
+void atacar(
+    Territorio *atacante,
+    Territorio *defensor);
+
+void atribuirMissao(
+    char *destino,
+    char *missoes[],
+    int totalMissoes);
+
+void exibirMissao(
+    char *missao);
+
+int verificarMissao(
+    char *missao,
+    Territorio *mapa,
+    int tamanho);
+
+void liberarMemoria(
+    Territorio *mapa,
+    char *missaoJogador1,
+    char *missaoJogador2);
 
 int main()
 {
@@ -27,11 +53,25 @@ int main()
     // inicializa a aleatoriedade
     srand(time(NULL));
 
+
+    char *missoes[] =
+    {
+        "Conquistar 2 territorios",
+        "Conquistar 3 territorios",
+        "Possuir mais de 20 tropas",
+        "Eliminar exercito vermelho",
+        "Dominar todos os territorios"
+    };
+
+    int totalMissoes =
+        sizeof(missoes) /
+        sizeof(missoes[0]);
+
     printf("========================================\n");
     printf("      CADASTRO DE TERRITORIOS - WAR\n");
     printf("========================================\n\n");
 
-    // Quantidade de territórios
+    // quantidade de territórios
     printf("Quantos territorios deseja cadastrar? ");
     scanf("%d", &quantidade);
     getchar();
@@ -47,12 +87,57 @@ int main()
         return 1;
     }
 
+    // slocação das missões
+    char *missaoJogador1 =
+        malloc(100);
+
+    char *missaoJogador2 =
+        malloc(100);
+
+    if (missaoJogador1 == NULL ||
+        missaoJogador2 == NULL)
+    {
+        printf("Erro ao alocar memoria.\n");
+        free(territorios);
+        return 1;
+    }
+
+    // sorteio das missões
+    atribuirMissao(
+        missaoJogador1,
+        missoes,
+        totalMissoes);
+
+    atribuirMissao(
+        missaoJogador2,
+        missoes,
+        totalMissoes);
+
     // cadastro
     cadastrarTerritorios(
         territorios,
         quantidade);
 
     // exibição inicial
+    printf("\n");
+    exibirTerritorios(
+        territorios,
+        quantidade);
+
+    // exibição das missões
+    printf("\n========================================\n");
+    printf("MISSAO JOGADOR 1\n");
+    printf("========================================\n");
+    exibirMissao(
+        missaoJogador1);
+
+    printf("\n========================================\n");
+    printf("MISSAO JOGADOR 2\n");
+    printf("========================================\n");
+    exibirMissao(
+        missaoJogador2);
+
+    // exibir mapa
     printf("\n");
     exibirTerritorios(
         territorios,
@@ -110,10 +195,33 @@ int main()
         exibirTerritorios(
             territorios,
             quantidade);
+        
+                // Verificação das missões
+        if (verificarMissao(
+                missaoJogador1,
+                territorios,
+                quantidade))
+        {
+            printf(
+                "\nJogador 1 cumpriu sua missao!\n");
+        }
+
+        if (verificarMissao(
+                missaoJogador2,
+                territorios,
+                quantidade))
+        {
+            printf(
+                "\nJogador 2 cumpriu sua missao!\n");
+        }
     }
 
     // liberação da memória
-    liberarMemoria(territorios);
+    liberarMemoria(
+        territorios,
+        missaoJogador1, 
+        missaoJogador2
+    );
 
     return 0;
 }
@@ -238,11 +346,77 @@ void atacar(
     }
 }
 
-// função para liberar memória
+// sorteio da missão
+void atribuirMissao(
+    char *destino,
+    char *missoes[],
+    int totalMissoes)
+{
+    int indice =
+        rand() % totalMissoes;
+
+    strcpy(
+        destino,
+        missoes[indice]);
+}
+
+// exibir missão
+void exibirMissao(
+    char *missao)
+{
+    printf(
+        "%s\n",
+        missao);
+}
+
+// verificação simples
+int verificarMissao(
+    char *missao,
+    Territorio *mapa,
+    int tamanho)
+{
+    int totalTerritorios = tamanho;
+    int totalTropas = 0;
+
+    for (int i = 0; i < tamanho; i++)
+    {
+        totalTropas +=
+            mapa[i].tropas;
+    }
+
+    if (strcmp(
+            missao,
+            "Conquistar 2 territorios") == 0)
+    {
+        return totalTerritorios >= 2;
+    }
+
+    if (strcmp(
+            missao,
+            "Conquistar 3 territorios") == 0)
+    {
+        return totalTerritorios >= 3;
+    }
+
+    if (strcmp(
+            missao,
+            "Possuir mais de 20 tropas") == 0)
+    {
+        return totalTropas > 20;
+    }
+
+    return 0;
+}
+
+// liberação
 void liberarMemoria(
-    Territorio *mapa)
+    Territorio *mapa,
+    char *missaoJogador1,
+    char *missaoJogador2)
 {
     free(mapa);
+    free(missaoJogador1);
+    free(missaoJogador2);
 
     printf(
         "\nMemoria liberada com sucesso.\n");
